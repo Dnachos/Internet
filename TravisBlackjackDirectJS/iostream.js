@@ -1,14 +1,14 @@
-export function cout(message) {
+export const cout = message => {
 	document.body.innerHTML += message.replace(/\n/g, "<br>");
-	const html = document.documentElement;
-	html.scrollTop = html.scrollHeight;
-}
+	const body = document.body;
+	body.scrollTop = body.scrollHeight;
+};
 
-export function cin(callback) {
+export const cin = () => new Promise(resolve => {
 	const body = document.body;
 	const length = body.innerHTML.length;
 	body.classList.add("caret");
-	const keyup = (event) => {
+	const keyup = event => {
 		if (event.key.length == 1) {
 			body.innerHTML += event.key;
 		} else if (event.key == "Backspace") {
@@ -20,8 +20,13 @@ export function cin(callback) {
 			body.innerHTML += "<br>";
 			body.removeEventListener("keyup", keyup);
 			body.classList.remove("caret");
-			callback(input);
+			resolve(input);
 		}
 	};
 	body.addEventListener("keyup", keyup);
-}
+});
+
+export const cerr = message => {
+	cout(`<span style="color: red">${message}</span>`);
+	throw message;
+};

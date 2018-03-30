@@ -1,4 +1,4 @@
-import {cout, cin} from './iostream.js';
+import {cout, cin, cerr} from "./iostream.js";
 import Card from "./Card.js";
 
 const MAX_CARDS = 52;
@@ -43,7 +43,7 @@ export default class CardSet
 		}
 		else
 		{
-			throw new Error("no card to remove");
+			cerr("no card to remove");
 		}
 	}
 	//prints out all the cards in the set.

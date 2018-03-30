@@ -1,60 +1,46 @@
-import {cout, cin} from './iostream.js';
-import Card from './Card.js';
-import CardSet from './CardSet.js';
+import {cout, cin, cerr} from "./iostream.js";
+import Card from "./Card.js";
+import CardSet from "./CardSet.js";
 
-//makes the deck
-let deck = makeDeck();
+(async function main() {
+	//makes the deck
+	let deck = new CardSet();
+	makeDeck(deck);
 
-//shuffels the deck
-deck.shuffle();
+	//shuffels the deck
+	deck.shuffle();
 
-let playerWins = 0;
-let dealerWins = 0;
+	//Displayes welcom message and askes if they want to play
+	//Tauns them if they dont want to play
+	if (await welcome() == false)
+	{
+		cout("Are you scared of my computer?\n");
+		return 1;
+	}
 
-//Displayes welcom message and askes if they want to play
-//Tauns them if they dont want to play
-welcome(main);
+	let playerWins = 0;
+	let dealerWins = 0;
 
-function main()
-{
 	//Addes points deppending on who one the last hand
 	//also plays said hand
-	play();
-}
-
-function play()
-{
-	let wins = 0;
-	oneHand(deck,
-		function(wins)
+	do
+	{
+		let wins = 0;
+		wins = await oneHand(deck);
+		if (wins == 1)
 		{
-			if (wins == 1) {
-				playerWins++;
-			}
-			if (wins == 0) {
-				dealerWins++;
-			}
-			cout("The dealer has " + dealerWins + " points!\n");
-			cout("You have " + playerWins + " points!\n\n");
-			getUserInput("Do you want to play again?",
-				function(response)
-				{
-					if ((response == true) && (deck.count() > 12))
-					{
-						play();
-					}
-					else
-						finish();
-				}
-			);
+			playerWins++;
 		}
-	);
-}
+		if (wins == 0)
+		{
+			dealerWins++;
+		}
+		cout("The dealer has " + dealerWins + " points!\n");
+		cout("You have " + playerWins + " points!\n\n");
+	} while ((await getUserInput("Do you want to play again?")) && (deck.count() > 12));
 
-function finish()
-{
-	if (deck.count() < 12)
-		cout( "Out of Cards!\n");
+	if(deck.count() < 12)
+		cout("Out of Cards!\n");
 
 	if (dealerWins > playerWins)
 	{
@@ -70,10 +56,13 @@ function finish()
 	{
 		cout("You both tied with " + playerWins + " points!");
 	}
-}
+	return 1;
+})();
 
 //code to run a single hand
-function oneHand(deck, callback) {
+async function oneHand(deck)
+{
+
 	let player = new CardSet();
 	let dealer = new CardSet();
 
@@ -92,152 +81,125 @@ function oneHand(deck, callback) {
 	cout("\n");
 
 	//askes if you want cards
-	(function askForCards()
+	while ((player.getValue() <= 21) && (await getUserInput("Do you want another card?")))
 	{
-		if (player.getValue() <= 21)
+		player.addCard(deck.removeCard());
+		cout("Your cards are now: ");
+		player.show(false);
+		cout("\n");
+	}
+
+	//Checks if you busted(happens way too often)
+	if (player.getValue() > 21)
+	{
+		cout("You busted!\n");
+		cout("The dealers cards were: ");
+		dealer.show(false);
+		cout("\n");
+		cout("Dealer wins!!!\n\n");
+		return false;
+	}
+
+	//Checks if the dealer wants another card
+	while (dealer.getValue() < 17)
+	{
+		dealer.addCard(deck.removeCard());
+
+		cout("The dealer got another card!\nThe dealers cards are now: ");
+		dealer.show(false);
+		cout("\n");
+	}
+
+	//checks if he busted
+	//player always rechecks becuase they cant belive such
+	//little code is beating them
+	//actually a ton of code when into making this very
+	//stophitocated machine only for me to bellitle it with
+	//such simple tasks
+
+	if (dealer.getValue() > 21)
+	{
+		cout("Dealer Busted!\n");
+		cout("You win!!!\n\n");
+		return true;
+	}
+
+	//checks if dealer has a higher hand value
+	if (dealer.getValue() >= player.getValue())
+	{
+		cout("Dealer had a higher score\n");
+		cout("The dealers cards were: ");
+		dealer.show(false);
+		cout("\n");
+		cout("Dealer wins!!!\n\n");
+		return false;
+	}
+
+	//checks if you have a higher hand value
+	if (dealer.getValue() < player.getValue())
+	{
+		cout("The dealers cards were: ");
+		dealer.show(false);
+		cout("\n");
+		cout("You had a higher score!\n");
+		cout("You win!!!\n\n");
+		return true;
+	}
+
+	//code should never execute these two lines.
+	//If they do I know something is wrong
+	cerr("oneHand has an issue");
+}
+
+async function welcome()
+{
+	let answer = 'T';
+	cout("\n\n\n");
+	cout("Welcome To twenty one!\n");
+	while (true)
+	{
+		cout("Ready to play? Y or N: ");
+		answer = await cin();
+		cout("\n");
+		if ((answer == 'Y') || (answer == 'y') || (answer == 'N') || (answer == 'n'))
 		{
-			getUserInput("Do you want another card?",
-				function(response)
-				{
-					if (response)
-					{
-						player.addCard(deck.removeCard());
-						cout("Your cards are now: ");
-						player.show(false);
-						cout("\n");
-						askForCards();
-					}
-					else
-						next();
-				}
-			);
+			if ((answer == 'Y') || (answer == 'y'))
+				return true;
+			else
+				return false;
 		}
 		else
-			next();
-	})();
-
-	function next()
-	{
-		//Checks if you busted(happens way too often)
-		if (player.getValue() > 21)
-		{
-			cout("You busted!\n");
-			cout("The dealers cards were: ");
-			dealer.show(false);
-			cout("\n");
-			cout("Dealer wins!!!\n\n");
-			callback(false);
-			return;
-		}
-
-		//Checks if the dealer wants another card
-		while (dealer.getValue() < 17)
-		{
-			dealer.addCard(deck.removeCard());
-
-			cout("The dealer got another card!\nThe dealers cards are now: ");
-			dealer.show(false);
-			cout("\n");
-		}
-
-		//checks if he busted
-		//player always rechecks becuase they cant belive such
-		//little code is beating them
-		//actually a ton of code when into making this very
-		//stophitocated machine only for me to bellitle it with
-		//such simple tasks
-
-		if (dealer.getValue() > 21)
-		{
-			cout( "Dealer Busted!\n");
-			cout("You win!!!\n\n");
-			callback(true);
-			return;
-		}
-
-		//checks if dealer has a higher hand value
-		if (dealer.getValue() >= player.getValue())
-		{
-			cout("Dealer had a higher score\n");
-			cout("The dealers cards were: ");
-			dealer.show(false);
-			cout("\n");
-			cout("Dealer wins!!!\n\n");
-			callback(false);
-			return;
-		}
-
-		//checks if you have a higher hand value
-		if (dealer.getValue() < player.getValue())
-		{
-			cout("The dealers cards were: ");
-			dealer.show(false);
-			cout("\n");
-			cout("You had a higher score!\n");
-			cout("You win!!!\n\n");
-			callback(true);
-			return;
-		}
-
-		//code should never execute these two lines.
-		//If they do I know something is wrong
-		throw new Error("oneHand has an issue");
+			cout("Invalid answer, Try again!\n");
 	}
 }
 
-function welcome(callback)
-{
-	cout ("\n\n\n");
-	cout ("Welcome To twenty one!\n");
-	getUserInput("Ready to play?",
-		function(response)
-		{
-			if (response == false)
-			{
-				cout("Are you scared of my computer?\n");
-				return 1;
-			}
-			else {
-				callback();
-			}
-		}
-	);
-}
-
-function getUserInput(question, callback)
+async function getUserInput(question)
 {
 	cout("\n");
+	do
+	{
+		let answer = 'T';
 
-	let answer = 'T';
-
-	cout(question + "\n");
-	cout("Yes or No (answer Y or N): ");
-	cin(
-		function(answer)
+		cout(question + "\n");
+		cout("Yes or No (answer Y or N): ");
+		answer = await cin();
+		cout("\n");
+		if ((answer == 'Y') || (answer == 'y') || (answer == 'N') || (answer == 'n'))
 		{
-			cout("\n");
-			if ((answer == 'Y') || (answer == 'y') || (answer == 'N') || (answer == 'n'))
-			{
-				if ((answer == 'Y') || (answer == 'y'))
-					callback(true);
-				else
-					callback(false);
-			}
+			if ((answer == 'Y') || (answer == 'y'))
+				return true;
 			else
-			{
-				cout("Are you dumb? I said Y or N!\n");
-				getUserInput(question, callback);
-			}
+				return false;
 		}
-	);
+		else
+			cout("Are you dumb? I said Y or N!\n");
+	} while (true);
 }
 
-function makeDeck()
+function makeDeck(deck)
 {
-	const suits = [ 'c', 's', 'h', 'd' ];
-	const ranks = [ 'A', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K' ];
-
-	let deck = new CardSet();
+	let suits = [ 'c', 's', 'h', 'd' ];
+	let ranks = [ 'A', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K' ];
 
 	for (let suitNum = 0; suitNum < 4; suitNum++)
 	{
@@ -246,5 +208,5 @@ function makeDeck()
 			deck.addCard(new Card(ranks[rankNum], suits[suitNum]));
 		}
 	}
-	return deck;
+
 }

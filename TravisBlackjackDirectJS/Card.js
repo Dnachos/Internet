@@ -1,4 +1,4 @@
-import {cout, cin} from './iostream.js';
+import {cout, cin, cerr} from "./iostream.js";
 
 //Card class definition
 // Card class iplementation
@@ -39,7 +39,7 @@ export default class Card
 			this.rank = rank.toUpperCase();
 			break;
 		default:
-			throw new Error("invalid rank: " + rank);
+			cerr("invalid rank: " + rank);
 			break;
 		}
 	}
@@ -60,10 +60,10 @@ export default class Card
 			this.suit = suit.toLowerCase();
 			break;
 		default:
-			throw new Error("invalid suit: " + suit);
+			cerr("invalid suit: " + suit);
 		}
 	}
-	//Print the card�s rank and suit to the screen
+	//Print the card's rank and suit to the screen
 	print(show)
 	{
 		if (show == true)
